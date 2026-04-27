@@ -1,0 +1,13 @@
+file_format: "1"
+id: toucan36
+name: Toucan36
+type: shield
+url: https://github.com/beekeeb/zmk-keyboard-toucan/
+requires: [seeeduino_xiao_ble]
+features:
+  - keys
+  - display
+  - studio
+siblings:
+  - toucan36_left
+  - toucan36_right

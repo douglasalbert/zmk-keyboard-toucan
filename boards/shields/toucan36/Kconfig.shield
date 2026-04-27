@@ -1,0 +1,5 @@
+config SHIELD_TOUCAN36_LEFT
+    def_bool $(shields_list_contains,toucan36_left)
+
+config SHIELD_TOUCAN36_RIGHT
+    def_bool $(shields_list_contains,toucan36_right)

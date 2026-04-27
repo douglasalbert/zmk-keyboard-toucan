@@ -43,6 +43,15 @@ MAKE_HRM(hml, &kp, &kp, KEYS_R THUMBS)  /* left-hand HRMs  */
 MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
 
 / {
+    combos {
+        compatible = "zmk,combos";
+        combo_esc {
+            timeout-ms = <50>;
+            key-positions = <LT4 LT3>;
+            bindings = <&kp ESC>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
