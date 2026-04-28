@@ -1,0 +1,412 @@
+/*
+ * keymap-drawer:
+ * layout:
+ *   ortho_layout:
+ *     split: true
+ *     rows: 3
+ *     columns: 5
+ *     thumbs: 3
+ */
+
+/* toucan36-plain.keymap — same layout as toucan36.keymap but without zmk-helpers,
+ * suitable for paste into https://keymap-drawer.streamlit.app/
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+
+/* ── Layer indices ─────────────────────────────────────────────────────────── */
+#define BASE 0
+#define NAV  1
+#define NUM  2
+#define FN   3
+#define SYS  4
+
+/* ── Readability shorthand ─────────────────────────────────────────────────── */
+#define ___ &trans
+
+/* ── Combo timing ──────────────────────────────────────────────────────────── */
+#define COMBO_TERM_FAST 18
+#define COMBO_TERM_SLOW 30
+#define COMBO_IDLE_FAST 150
+#define COMBO_IDLE_SLOW 50
+
+/* ── Key-position constants (36-key: 5 cols × 3 rows + 3 thumbs/side)
+ *
+ *   0  1  2  3  4    5  6  7  8  9
+ *  10 11 12 13 14   15 16 17 18 19
+ *  20 21 22 23 24   25 26 27 28 29
+ *        30 31 32   33 34 35
+ *
+ *  LT4 LT3 LT2 LT1 LT0  RT0 RT1 RT2 RT3 RT4
+ *  LM4 LM3 LM2 LM1 LM0  RM0 RM1 RM2 RM3 RM4
+ *  LB4 LB3 LB2 LB1 LB0  RB0 RB1 RB2 RB3 RB4
+ *      LH2 LH1 LH0       RH0 RH1 RH2
+ * ─────────────────────────────────────────── */
+#define KEYS_L  4  3  2  1  0   14 13 12 11 10   24 23 22 21 20
+#define KEYS_R  5  6  7  8  9   15 16 17 18 19   25 26 27 28 29
+#define THUMBS 32 31 30 33 34 35
+
+/ {
+    behaviors {
+        /* timerless home-row mod — left hand (triggers on right keys + thumbs) */
+        hml: hml {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            bindings = <&kp>, <&kp>;
+            flavor = "balanced";
+            tapping-term-ms = <280>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
+            hold-trigger-on-release;
+            hold-trigger-key-positions = <KEYS_R THUMBS>;
+        };
+
+        /* timerless home-row mod — right hand (triggers on left keys + thumbs) */
+        hmr: hmr {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            bindings = <&kp>, <&kp>;
+            flavor = "balanced";
+            tapping-term-ms = <280>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
+            hold-trigger-on-release;
+            hold-trigger-key-positions = <KEYS_L THUMBS>;
+        };
+    };
+
+    combos {
+        compatible = "zmk,combos";
+
+        /* ESC — top-left corner, always active */
+        combo_esc {
+            timeout-ms = <COMBO_TERM_FAST>;
+            key-positions = <0 1>;          /* LT4 LT3 */
+            bindings = <&kp ESC>;
+        };
+
+        /* ── horizontal left ──────────────────────────────────────────────── */
+        combo_tab {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <11 12>;        /* LM3 LM2 = S+D */
+            bindings = <&kp TAB>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_cut {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <21 23>;        /* LB3 LB1 = Z+V (skip X) */
+            bindings = <&kp LC(X)>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_copy {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <21 22>;        /* LB3 LB2 = Z+X */
+            bindings = <&kp LC(INS)>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_paste {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <22 23>;        /* LB2 LB1 = X+C */
+            bindings = <&kp LS(INS)>;
+            layers = <BASE NAV NUM>;
+        };
+
+        /* ── horizontal right ─────────────────────────────────────────────── */
+        combo_bspc {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <6 7>;          /* RT1 RT2 = U+I */
+            bindings = <&kp BSPC>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_del {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <7 8>;          /* RT2 RT3 = I+O */
+            bindings = <&kp DEL>;
+            layers = <BASE NAV NUM>;
+        };
+        /* parens on BASE/NUM; angle brackets on NAV (same positions) */
+        combo_lpar {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <16 17>;        /* RM1 RM2 = J+K */
+            bindings = <&kp LPAR>;
+            layers = <BASE NUM>;
+        };
+        combo_rpar {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <17 18>;        /* RM2 RM3 = K+L */
+            bindings = <&kp RPAR>;
+            layers = <BASE NUM>;
+        };
+        combo_lt {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <16 17>;        /* RM1 RM2 = J+K */
+            bindings = <&kp LT>;
+            layers = <NAV>;
+        };
+        combo_gt {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <17 18>;        /* RM2 RM3 = K+L */
+            bindings = <&kp GT>;
+            layers = <NAV>;
+        };
+        /* brackets on BASE/NUM; braces on NAV (same positions) */
+        combo_lbkt {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <26 27>;        /* RB1 RB2 = M+, */
+            bindings = <&kp LBKT>;
+            layers = <BASE NUM>;
+        };
+        combo_rbkt {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <27 28>;        /* RB2 RB3 = ,+. */
+            bindings = <&kp RBKT>;
+            layers = <BASE NUM>;
+        };
+        combo_lbrc {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <26 27>;        /* RB1 RB2 = M+, */
+            bindings = <&kp LBRC>;
+            layers = <NAV>;
+        };
+        combo_rbrc {
+            timeout-ms = <COMBO_TERM_FAST>;
+            require-prior-idle-ms = <COMBO_IDLE_FAST>;
+            key-positions = <27 28>;        /* RB2 RB3 = ,+. */
+            bindings = <&kp RBRC>;
+            layers = <NAV>;
+        };
+
+        /* ── vertical left ────────────────────────────────────────────────── */
+        combo_at {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <1 11>;         /* LT3 LM3 = W+S */
+            bindings = <&kp AT>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_hash {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <2 12>;         /* LT2 LM2 = E+D */
+            bindings = <&kp HASH>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_dllr {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <3 13>;         /* LT1 LM1 = R+F */
+            bindings = <&kp DLLR>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_prcnt {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <4 14>;         /* LT0 LM0 = T+G */
+            bindings = <&kp PRCNT>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_grave {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <11 21>;        /* LM3 LB3 = S+Z */
+            bindings = <&kp GRAVE>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_bslh {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <12 22>;        /* LM2 LB2 = D+X */
+            bindings = <&kp BSLH>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_equal {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <13 23>;        /* LM1 LB1 = F+V */
+            bindings = <&kp EQUAL>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_tilde {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <14 24>;        /* LM0 LB0 = G+B */
+            bindings = <&kp TILDE>;
+            layers = <BASE NAV NUM>;
+        };
+
+        /* ── vertical right ───────────────────────────────────────────────── */
+        combo_caret {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <5 15>;         /* RT0 RM0 = Y+H */
+            bindings = <&kp CARET>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_plus {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <6 16>;         /* RT1 RM1 = U+J */
+            bindings = <&kp PLUS>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_star {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <7 17>;         /* RT2 RM2 = I+K */
+            bindings = <&kp STAR>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_amps {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <8 18>;         /* RT3 RM3 = O+L */
+            bindings = <&kp AMPS>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_under {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <15 25>;        /* RM0 RB0 = H+N */
+            bindings = <&kp UNDER>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_minus {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <16 26>;        /* RM1 RB1 = J+M */
+            bindings = <&kp MINUS>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_fslh {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <17 27>;        /* RM2 RB2 = K+, */
+            bindings = <&kp FSLH>;
+            layers = <BASE NAV NUM>;
+        };
+        combo_pipe {
+            timeout-ms = <COMBO_TERM_SLOW>;
+            require-prior-idle-ms = <COMBO_IDLE_SLOW>;
+            key-positions = <18 28>;        /* RM3 RB3 = L+. */
+            bindings = <&kp PIPE>;
+            layers = <BASE NAV NUM>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        /* BASE — QWERTY with timerless home-row mods (GACS order, pinky→index)
+         *
+         *  Thumb cluster:
+         *    L0: LGUI          L1: FN/TAB        L2: NAV/SPACE
+         *    R0: NUM/RET       R1: SYS/BSPC      R2: RALT
+         */
+        base {
+            display-name = "BASE";
+            bindings = <
+// ╭──────────────────┬──────────────────┬──────────────────┬──────────────────┬─────────╮ ╭─────────┬──────────────────┬──────────────────┬───────────────┬──────────────────╮
+   &kp Q               &kp W              &kp E              &kp R              &kp T       &kp Y     &kp U              &kp I              &kp O           &kp P
+// ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
+   &hml LGUI A          &hml LALT S        &hml LCTRL D       &hml LSHFT F       &kp G       &kp H     &hmr RSHFT J       &hmr RCTRL K       &hmr RALT L     &hmr RGUI SEMI
+// ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
+   &kp Z               &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &kp COMMA          &kp DOT         &kp FSLH
+// ╰──────────────────┴──────────────────┴──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┴──────────────────╯
+                                                              &kp LGUI           &lt FN TAB   &lt NAV SPACE   &lt NUM RET   &lt SYS BSPC   &kp RALT
+//                                                           ╰──────────────────┴─────────╯ ╰─────────┴──────────────────┴──────────────────╯
+            >;
+        };
+
+        /* NAV — navigation + one-shot mods */
+        nav {
+            display-name = "NAV";
+            bindings = <
+// ╭──────────┬─────────┬─────────┬──────────┬─────╮ ╭───────────┬──────────┬──────────┬───────────┬─────────╮
+   &kp ESC     ___       ___       ___         ___    &kp PG_UP   &kp BSPC   &kp UP     &kp DEL     ___
+// ├──────────┼─────────┼─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┼─────────┤
+   &sk LGUI    &sk LALT  &sk LCTRL &sk LSHFT   ___    &kp PG_DN   &kp LEFT   &kp DOWN   &kp RIGHT   &kp SQT
+// ├──────────┼─────────┼─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┼─────────┤
+   ___          ___       ___       ___         ___    &kp INS     &kp TAB    ___        ___         ___
+// ╰──────────┴─────────┴─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┴─────────╯
+                                    ___         ___    ___         ___        ___        ___
+//                                 ╰──────────┴─────╯ ╰───────────┴──────────┴──────────┴─────╯
+            >;
+        };
+
+        /* NUM — numpad-style numbers with HRMs for modifier access */
+        num {
+            display-name = "NUM";
+            bindings = <
+// ╭─────┬──────────┬──────────┬──────────┬─────╮ ╭─────┬─────┬─────┬─────┬─────╮
+   ___     &kp N7    &kp N8     &kp N9     ___    ___   ___   ___   ___   ___
+// ├─────┼──────────┼──────────┼──────────┼─────┤ ├─────┼─────┼─────┼─────┼─────┤
+   &hml LGUI N0   &hml LALT N4   &hml LCTRL N5   &hml LSHFT N6   ___    ___   ___   ___   ___   ___
+// ├─────┼──────────┼──────────┼──────────┼─────┤ ├─────┼─────┼─────┼─────┼─────┤
+   ___     &kp N1    &kp N2     &kp N3     ___    ___   ___   ___   ___   ___
+// ╰─────┴──────────┴──────────┼──────────┼─────┤ ├─────┼─────┼─────┼─────┴─────╯
+                                ___        ___    ___   ___   ___   ___
+//                             ╰──────────┴─────╯ ╰─────┴─────┴─────┴─────╯
+            >;
+        };
+
+        /* FN — function keys + media controls */
+        fn {
+            display-name = "FN";
+            bindings = <
+// ╭──────────┬──────────┬──────────┬──────────┬─────╮ ╭─────┬───────────┬────────────┬────────────┬─────╮
+   &kp F12     &kp F7     &kp F8     &kp F9     ___    ___   &kp C_PREV   &kp C_VOL_UP  &kp C_NEXT   ___
+// ├──────────┼──────────┼──────────┼──────────┼─────┤ ├─────┼───────────┼────────────┼────────────┼─────┤
+   &hml LGUI F11   &hml LALT F4   &hml LCTRL F5   &hml LSHFT F6   ___    ___   &kp LC(LEFT)   &kp C_VOL_DN   &kp LC(RIGHT)   ___
+// ├──────────┼──────────┼──────────┼──────────┼─────┤ ├─────┼───────────┼────────────┼────────────┼─────┤
+   &kp F10     &kp F1     &kp F2     &kp F3     ___    ___   &kp C_PP    &kp C_MUTE   ___          ___
+// ╰──────────┴──────────┴──────────┼──────────┼─────┤ ├─────┼───────────┼────────────┼────────────┴─────╯
+                                      ___        ___    ___   &kp C_MUTE   &kp C_PP   ___
+//                                   ╰──────────┴─────╯ ╰─────┴───────────┴────────────┴─────╯
+            >;
+        };
+
+        /* SYS — Bluetooth profile selection + system controls */
+        sys {
+            display-name = "SYS";
+            bindings = <
+// ╭──────────────┬──────────────┬──────────────┬──────────────┬──────────────╮ ╭─────┬─────┬─────┬─────┬──────────────╮
+   &bt BT_SEL 0   &bt BT_SEL 1   &bt BT_SEL 2   &bt BT_SEL 3   &bt BT_SEL 4   ___   ___   ___   ___   &out OUT_TOG
+// ├──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤ ├─────┼─────┼─────┼─────┼──────────────┤
+   &bt BT_CLR      ___            ___            ___            &bootloader      &bootloader   ___   ___   ___   ___
+// ├──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤ ├─────┼─────┼─────┼─────┼──────────────┤
+   ___             ___            ___            ___            &sys_reset       &sys_reset   ___   ___   ___   &studio_unlock
+// ╰──────────────┴──────────────┴──────────────┼──────────────┼──────────────┤ ├─────┼─────┼─────┼─────┴──────────────╯
+                                                  ___            ___              ___   ___   ___   ___
+//                                               ╰──────────────┴──────────────╯ ╰─────┴─────┴─────┴─────╯
+            >;
+        };
+
+        extra_1 {
+                status = "reserved";
+        };
+
+        extra_2 {
+                status = "reserved";
+        };
+
+        extra_3 {
+                status = "reserved";
+        };
+    };
+};
