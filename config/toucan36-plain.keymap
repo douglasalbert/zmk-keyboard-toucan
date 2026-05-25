@@ -76,6 +76,26 @@
             hold-trigger-on-release;
             hold-trigger-key-positions = <KEYS_L THUMBS>;
         };
+
+        /* Shift morphs (from urob): , → ; . → : ? → ! */
+        comma_morph: comma_morph {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp COMMA>, <&kp SEMICOLON>;
+            mods = <(MOD_LSFT | MOD_RSFT)>;
+        };
+        dot_morph: dot_morph {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp DOT>, <&kp COLON>;
+            mods = <(MOD_LSFT | MOD_RSFT)>;
+        };
+        qexcl: qexcl {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp QMARK>, <&kp EXCL>;
+            mods = <(MOD_LSFT | MOD_RSFT)>;
+        };
     };
 
     combos {
@@ -314,6 +334,10 @@
 
         /* BASE — QWERTY with timerless home-row mods (GACS order, pinky→index)
          *
+         *  Punctuation morphs on bottom row: , → ; . → : ? → !
+         *  NOTE: smart_num and magic_shift require external modules (zmk-auto-layer, zmk-adaptive-key)
+         *        and are not available in this plain variant. Use toucan36.keymap for full features.
+         *
          *  Thumb cluster:
          *    L0: LGUI          L1: FN/TAB        L2: NAV/SPACE
          *    R0: NUM/RET       R1: SYS/BSPC      R2: RALT
@@ -326,7 +350,7 @@
 // ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
    &hml LGUI A          &hml LALT S        &hml LCTRL D       &hml LSHFT F       &kp G       &kp H     &hmr RSHFT J       &hmr RCTRL K       &hmr RALT L     &hmr RGUI SEMI
 // ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
-   &kp Z               &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &kp COMMA          &kp DOT         &kp FSLH
+   &kp Z               &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &comma_morph       &dot_morph      &qexcl
 // ╰──────────────────┴──────────────────┴──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┴──────────────────╯
                                                               &kp LGUI           &lt FN TAB   &lt NAV SPACE   &lt NUM RET   &lt SYS BSPC   &kp RALT
 //                                                           ╰──────────────────┴─────────╯ ╰─────────┴──────────────────┴──────────────────╯
@@ -340,7 +364,7 @@
 // ╭──────────┬─────────┬─────────┬──────────┬─────╮ ╭───────────┬──────────┬──────────┬───────────┬─────────╮
    &kp ESC     ___       ___       ___         ___    &kp PG_UP   &kp BSPC   &kp UP     &kp DEL     ___
 // ├──────────┼─────────┼─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┼─────────┤
-   &sk LGUI    &sk LALT  &sk LCTRL &sk LSHFT   ___    &kp PG_DN   &kp LEFT   &kp DOWN   &kp RIGHT   &kp SQT
+   &sk LGUI    &sk LALT  &sk LCTRL &sk LSHFT   ___    &kp PG_DN   &kp LEFT   &kp DOWN   &kp RIGHT   &kp RET
 // ├──────────┼─────────┼─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┼─────────┤
    ___          ___       ___       ___         ___    &kp INS     &kp TAB    ___        ___         ___
 // ╰──────────┴─────────┴─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┴─────────╯

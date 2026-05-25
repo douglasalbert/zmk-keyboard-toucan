@@ -4,6 +4,7 @@
 #include <dt-bindings/zmk/outputs.h>
 #include <zmk-helpers/helper.h>
 #include <zmk-helpers/key-labels/42.h>
+#include <behaviors/num_word.dtsi>
 
 /* ── Layer indices ─────────────────────────────────────────────────────────── */
 #define BASE 0
@@ -42,6 +43,55 @@
 MAKE_HRM(hml, &kp, &kp, KEYS_R THUMBS)  /* left-hand HRMs  */
 MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
 
+/* ── Shift morphs (from urob) ────────────────────────────────────────────────
+ *  , + Shift → ;    . + Shift → :    ? + Shift → !
+ */
+#define SIMPLE_MORPH(NAME, MOD, BINDING1, BINDING2)                            \
+  ZMK_MOD_MORPH(NAME, mods = <(MOD_L##MOD | MOD_R##MOD)>;                     \
+                bindings = <BINDING1>, <BINDING2>;)
+
+SIMPLE_MORPH(comma_morph, SFT, &kp COMMA, &kp SEMICOLON)
+SIMPLE_MORPH(dot_morph,    SFT, &kp DOT,   &kp COLON)
+SIMPLE_MORPH(qexcl,        SFT, &kp QMARK, &kp EXCL)
+
+/* ── Smart num (numsword) ────────────────────────────────────────────────────
+ *  Tap:       num-word (temporary NUM for one word/sequence)
+ *  Double-tap: sticky NUM layer
+ *  Hold:       NUM layer
+ */
+#define SMART_NUM &smart_num NUM 0
+ZMK_HOLD_TAP(smart_num, bindings = <&mo>, <&num_dance>; flavor = "balanced";
+             tapping-term-ms = <200>; quick-tap-ms = <175>;)
+ZMK_TAP_DANCE(num_dance, bindings = <&num_word NUM>, <&sl NUM>;
+              tapping-term-ms = <200>;)
+
+/* ── Magic shift (caps-word + repeat) ───────────────────────────────────────
+ *  Tap after alpha:   repeat the alpha
+ *  Tap after non-alpha: sticky shift
+ *  Shift + tap:        caps-word
+ *  Hold:               shift
+ */
+#define MAGIC_SHIFT &magic_shift LSHFT 0
+ZMK_HOLD_TAP(magic_shift, bindings = <&kp>, <&magic_shift_tap>;
+             flavor = "balanced"; tapping-term-ms = <200>;
+             quick-tap-ms = <175>;)
+ZMK_MOD_MORPH(magic_shift_tap, bindings = <&shift_repeat>, <&caps_word>;
+              mods = <(MOD_LSFT)>;)
+ZMK_ADAPTIVE_KEY(
+    shift_repeat, bindings = <&sk LSHFT>;
+    repeat {
+      trigger-keys = <A B C D E F G H I J K L M N O P Q R S T U V W X Y Z>;
+      bindings = <&key_repeat>;
+      max-prior-idle-ms = <1200>;
+      strict-modifiers;
+    };)
+&caps_word {
+  /delete-property/ ignore-modifiers;
+};
+
+/* ── Conditional layer: FN + NUM = SYS ─────────────────────────────────────── */
+ZMK_CONDITIONAL_LAYER(sys, FN NUM, SYS)
+
 / {
     keymap {
         compatible = "zmk,keymap";
@@ -50,8 +100,9 @@ MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
          *
          *  Thumb cluster:
          *    L0: LGUI          L1: FN/LALT       L2: NAV/SPACE
-         *    R0: NUM/RET       R1: SYS/BSPC      R2: RALT
+         *    R0: SMART_NUM     R1: MAGIC_SHIFT   R2: RALT
          *
+         *  Punctuation morphs on bottom row: , → ; . → : ? → !
          *  Outer columns (LCTRL/LSHFT/BSPC/SQT/ESC) are kept for direct access
          *  alongside the HRMs on the inner home row.
          */
@@ -63,9 +114,9 @@ MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
 // ├──────────┼──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┼──────────┤
    &kp LCTRL   &hml LGUI A        &hml LALT S        &hml LCTRL D       &hml LSHFT F       &kp G       &kp H     &hmr RSHFT J       &hmr RCTRL K       &hmr RALT L     &hmr RGUI SEMI     &kp SQT
 // ├──────────┼──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┼──────────┤
-   &kp LSHFT   &kp Z              &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &kp COMMA          &kp DOT         &kp FSLH           &kp ESC
+   &kp LSHFT   &kp Z              &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &comma_morph       &dot_morph      &qexcl             &kp ESC
 // ╰──────────┴──────────────────┴──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┴──────────────────┴──────────╯
-                                                      &kp LGUI           &lt FN LALT        &lt NAV SPACE   &lt NUM RET   &lt SYS BSPC   &kp RALT
+                                                      &kp LGUI           &lt FN LALT        &lt NAV SPACE   &smart_num NUM 0   &magic_shift LSHFT 0   &kp RALT
 //                                                  ╰──────────────────┴──────────────────┴─────────╯ ╰─────────┴──────────────────┴──────────────────╯
             >;
         };

@@ -4,6 +4,7 @@
 #include <dt-bindings/zmk/outputs.h>
 #include <zmk-helpers/helper.h>
 #include <zmk-helpers/key-labels/36.h>
+#include <behaviors/num_word.dtsi>
 
 /* ── Layer indices ─────────────────────────────────────────────────────────── */
 #define BASE 0
@@ -44,6 +45,55 @@
 MAKE_HRM(hml, &kp, &kp, KEYS_R THUMBS)  /* left-hand HRMs  */
 MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
 
+/* ── Shift morphs (from urob) ────────────────────────────────────────────────
+ *  , + Shift → ;    . + Shift → :    ? + Shift → !
+ */
+#define SIMPLE_MORPH(NAME, MOD, BINDING1, BINDING2)                            \
+  ZMK_MOD_MORPH(NAME, mods = <(MOD_L##MOD | MOD_R##MOD)>;                     \
+                bindings = <BINDING1>, <BINDING2>;)
+
+SIMPLE_MORPH(comma_morph, SFT, &kp COMMA, &kp SEMICOLON)
+SIMPLE_MORPH(dot_morph,    SFT, &kp DOT,   &kp COLON)
+SIMPLE_MORPH(qexcl,        SFT, &kp QMARK, &kp EXCL)
+
+/* ── Smart num (numsword) ────────────────────────────────────────────────────
+ *  Tap:       num-word (temporary NUM for one word/sequence)
+ *  Double-tap: sticky NUM layer
+ *  Hold:       NUM layer
+ */
+#define SMART_NUM &smart_num NUM 0
+ZMK_HOLD_TAP(smart_num, bindings = <&mo>, <&num_dance>; flavor = "balanced";
+             tapping-term-ms = <200>; quick-tap-ms = <175>;)
+ZMK_TAP_DANCE(num_dance, bindings = <&num_word NUM>, <&sl NUM>;
+              tapping-term-ms = <200>;)
+
+/* ── Magic shift (caps-word + repeat) ───────────────────────────────────────
+ *  Tap after alpha:   repeat the alpha
+ *  Tap after non-alpha: sticky shift
+ *  Shift + tap:        caps-word
+ *  Hold:               shift
+ */
+#define MAGIC_SHIFT &magic_shift LSHFT 0
+ZMK_HOLD_TAP(magic_shift, bindings = <&kp>, <&magic_shift_tap>;
+             flavor = "balanced"; tapping-term-ms = <200>;
+             quick-tap-ms = <175>;)
+ZMK_MOD_MORPH(magic_shift_tap, bindings = <&shift_repeat>, <&caps_word>;
+              mods = <(MOD_LSFT)>;)
+ZMK_ADAPTIVE_KEY(
+    shift_repeat, bindings = <&sk LSHFT>;
+    repeat {
+      trigger-keys = <A B C D E F G H I J K L M N O P Q R S T U V W X Y Z>;
+      bindings = <&key_repeat>;
+      max-prior-idle-ms = <1200>;
+      strict-modifiers;
+    };)
+&caps_word {
+  /delete-property/ ignore-modifiers;
+};
+
+/* ── Conditional layer: FN + NUM = SYS ─────────────────────────────────────── */
+ZMK_CONDITIONAL_LAYER(sys, FN NUM, SYS)
+
 / {
     keymap {
         compatible = "zmk,keymap";
@@ -51,16 +101,15 @@ MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
         /* BASE — QWERTY with timerless home-row mods (GACS order, pinky→index)
          *
          *  No outer columns vs. 42-key. Keys relocated:
-         *    TAB   → left thumb 1 tap  (lt FN TAB)
          *    LCTRL → HRM on D          (hml LCTRL D)
          *    LSHFT → HRM on F          (hml LSHFT F)
-         *    BSPC  → right thumb 1 tap (lt SYS BSPC)
-         *    SQT   → NAV layer, RM4 slot (NAV + ;)
          *    ESC   → NAV layer, LT4 slot (NAV + Q)
          *
+         *  Punctuation morphs on bottom row: , → ; . → : ? → !
+         *
          *  Thumb cluster:
-         *    L0: LGUI          L1: FN/TAB        L2: NAV/SPACE
-         *    R0: NUM/RET       R1: SYS/BSPC      R2: RALT
+         *    L0: LGUI          L1: NAV/SPACE      L2: FN/RET
+         *    R0: SMART_NUM     R1: MAGIC_SHIFT    R2: RALT
          */
         base {
             display-name = "BASE";
@@ -70,9 +119,9 @@ MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
 // ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
    &hml LGUI A          &hml LALT S        &hml LCTRL D       &hml LSHFT F       &kp G       &kp H     &hmr RSHFT J       &hmr RCTRL K       &hmr RALT L     &hmr RGUI SEMI
 // ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
-   &kp Z               &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &kp COMMA          &kp DOT         &kp FSLH
+   &kp Z               &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &comma_morph       &dot_morph      &qexcl
 // ╰──────────────────┴──────────────────┴──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┴──────────────────╯
-                                                              &kp LGUI           &lt FN TAB   &lt NAV SPACE   &lt NUM RET   &lt SYS BSPC   &kp RALT
+                                                              &kp LGUI           &lt NAV SPACE   &lt FN RET   &smart_num NUM 0   &magic_shift LSHFT 0   &kp RALT
 //                                                           ╰──────────────────┴─────────╯ ╰─────────┴──────────────────┴──────────────────╯
             >;
         };
@@ -80,7 +129,7 @@ MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
         /* NAV — navigation + one-shot mods
          *
          *  ESC placed at LT4 (NAV + Q).
-         *  SQT placed at RM4 (NAV + ;) — fills the slot lost from the outer column.
+         *  RET placed at RM4 — Enter accessible while in NAV.
          */
         nav {
             display-name = "NAV";
@@ -88,7 +137,7 @@ MAKE_HRM(hmr, &kp, &kp, KEYS_L THUMBS)  /* right-hand HRMs */
 // ╭──────────┬─────────┬─────────┬──────────┬─────╮ ╭───────────┬──────────┬──────────┬───────────┬─────────╮
    &kp ESC     ___       ___       ___         ___    &kp PG_UP   &kp BSPC   &kp UP     &kp DEL     ___
 // ├──────────┼─────────┼─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┼─────────┤
-   &sk LGUI    &sk LALT  &sk LCTRL &sk LSHFT   ___    &kp PG_DN   &kp LEFT   &kp DOWN   &kp RIGHT   &kp SQT
+   &sk LGUI    &sk LALT  &sk LCTRL &sk LSHFT   ___    &kp PG_DN   &kp LEFT   &kp DOWN   &kp RIGHT   &kp RET
 // ├──────────┼─────────┼─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┼─────────┤
    ___          ___       ___       ___         ___    &kp INS     &kp TAB    ___        ___         ___
 // ╰──────────┴─────────┴─────────┼──────────┼─────┤ ├───────────┼──────────┼──────────┼───────────┴─────────╯
