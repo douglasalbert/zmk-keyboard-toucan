@@ -27,9 +27,6 @@ manifest:
       revision: v0.3
     - name: zmk-auto-layer
       remote: urob
-      revision: dfa7c695ffde41ef8064245453595d50e198ae1d
-    - name: zmk-adaptive-key
-      remote: urob
-      revision: 18cc2795a64ccb394d1a7b7d591a5bfe3f25924b
+      revision: v0.3
   self:
     path: config

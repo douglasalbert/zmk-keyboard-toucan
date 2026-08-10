@@ -67,30 +67,6 @@ ZMK_HOLD_TAP(smart_num, bindings = <&mo>, <&num_dance>; flavor = "balanced";
 ZMK_TAP_DANCE(num_dance, bindings = <&num_word NUM>, <&sl NUM>;
               tapping-term-ms = <200>;)
 
-/* ── Magic shift (caps-word + repeat) ───────────────────────────────────────
- *  Tap after alpha:   repeat the alpha
- *  Tap after non-alpha: sticky shift
- *  Shift + tap:        caps-word
- *  Hold:               shift
- */
-#define MAGIC_SHIFT &magic_shift LSHFT 0
-ZMK_HOLD_TAP(magic_shift, bindings = <&kp>, <&magic_shift_tap>;
-             flavor = "balanced"; tapping-term-ms = <200>;
-             quick-tap-ms = <175>;)
-ZMK_MOD_MORPH(magic_shift_tap, bindings = <&shift_repeat>, <&caps_word>;
-              mods = <(MOD_LSFT)>;)
-ZMK_ADAPTIVE_KEY(
-    shift_repeat, bindings = <&sk LSHFT>;
-    repeat {
-      trigger-keys = <A B C D E F G H I J K L M N O P Q R S T U V W X Y Z>;
-      bindings = <&key_repeat>;
-      max-prior-idle-ms = <1200>;
-      strict-modifiers;
-    };)
-&caps_word {
-  /delete-property/ ignore-modifiers;
-};
-
 /* ── Conditional layer: FN + NUM = SYS ─────────────────────────────────────── */
 ZMK_CONDITIONAL_LAYER(sys, FN NUM, SYS)
 
@@ -109,7 +85,7 @@ ZMK_CONDITIONAL_LAYER(sys, FN NUM, SYS)
          *
          *  Thumb cluster:
          *    L0: LGUI          L1: NAV/SPACE      L2: FN/RET
-         *    R0: SMART_NUM     R1: MAGIC_SHIFT    R2: RALT
+         *    R0: SMART_NUM     R1: SYS/BSPC       R2: RALT
          */
         base {
             display-name = "BASE";
@@ -121,7 +97,7 @@ ZMK_CONDITIONAL_LAYER(sys, FN NUM, SYS)
 // ├──────────────────┼──────────────────┼──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┤
    &kp Z               &kp X              &kp C              &kp V              &kp B       &kp N     &kp M              &comma_morph       &dot_morph      &qexcl
 // ╰──────────────────┴──────────────────┴──────────────────┼──────────────────┼─────────┤ ├─────────┼──────────────────┼──────────────────┼───────────────┴──────────────────╯
-                                                              &kp LGUI           &lt NAV SPACE   &lt FN RET   &smart_num NUM 0   &magic_shift LSHFT 0   &kp RALT
+                                                              &kp LGUI           &lt NAV SPACE   &lt FN RET   &smart_num NUM 0   &lt SYS BSPC   &kp RALT
 //                                                           ╰──────────────────┴─────────╯ ╰─────────┴──────────────────┴──────────────────╯
             >;
         };
